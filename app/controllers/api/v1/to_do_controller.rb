@@ -48,6 +48,6 @@ class Api::V1::ToDoController < ApplicationController
 
   private
     def to_do_params
-      params.permit(:title, :description, :start_date, :due_date)
+      params.permit(:title, :description, :start_date, :due_date, :priority)
     end
 end

@@ -78,6 +78,8 @@ class ToDo extends React.Component {
               <Moment format="DD MMM YYYY h:mm a">{to_do.start_date}</Moment>
               <h5 className="mb-2">Due Date</h5>
               <Moment format="DD MMM YYYY h:mm a">{to_do.due_date}</Moment>
+              <h5 className="mb-2">Priority</h5>
+              <p>{to_do.priority}</p>
             </div>
             <div className="col-sm-12 col-lg-2">
               <button type="button" className="btn btn-danger" onClick={this.deleteToDo}>
@@ -85,12 +87,16 @@ class ToDo extends React.Component {
               </button>
             </div>
           </div>
-          <Link to="/list" className="btn btn-secondary">
-            Back to To Do List
-          </Link>
-          <Link to={"/update_to_do/"+to_do.id} className="btn btn-secondary">
-            Edit To Do
-          </Link>
+          <div>
+            <Link to="/list" className="btn btn-secondary">
+              Back to To Do List
+            </Link>
+          </div>
+          <div>
+            <Link to={"/update_to_do/"+to_do.id} className="btn btn-secondary">
+              Edit To Do
+            </Link>
+          </div>
         </div>
       </div>
     );

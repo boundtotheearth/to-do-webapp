@@ -14,6 +14,7 @@ class ToDoForm extends React.Component {
       description: "",
       start_date: moment.utc().format("YYYY-MM-DD HH:mm:ss"),
       due_date: moment.utc().format("YYYY-MM-DD HH:mm:ss"),
+      priority: "0",
       method: "POST"
     };
 
@@ -21,7 +22,7 @@ class ToDoForm extends React.Component {
     this.onSubmit = this.onSubmit.bind(this);
     this.handleStartDateChange = this.handleStartDateChange.bind(this);
     this.handleDueDateChange = this.handleDueDateChange.bind(this);
-
+    this.handlePriorityChange = this.handlePriorityChange.bind(this);
   }
 
   onChange(event) {
@@ -35,6 +36,10 @@ class ToDoForm extends React.Component {
 
   handleDueDateChange(date) {
     this.setState({ due_date: moment.utc(date).format("YYYY-MM-DD HH:mm:ss") });
+  }
+
+  handlePriorityChange(priority) {
+    this.setState({ priority: priority });
   }
 
   componentDidMount() {
@@ -61,6 +66,7 @@ class ToDoForm extends React.Component {
           description: response.description,
           start_date: response.start_date,
           due_date: response.due_date,
+          priority: response.priority,
           method: "PATCH"
         }))
         .catch(() => this.props.history.push('/list'))
@@ -68,17 +74,16 @@ class ToDoForm extends React.Component {
   }
 
   onSubmit(event) {
-    console.log("submit");
     event.preventDefault();
     const url = "/api/v1/to_do/" + (this.state.id ? this.state.id : "");
-    const { title, description, start_date, due_date } = this.state;
+    const { title, description, start_date, due_date, priority } = this.state;
 
     if(title.length == 0 || description.length == 0 || start_date.length == 0 || due_date.length == 0) {
       return;
     }
 
-    const body = {title, description, start_date, due_date};
-    console.log(start_date);
+    const body = {title, description, start_date, due_date, priority};
+    console.log(priority);
     const token = document.querySelector('meta[name="csrf-token"]').content;
     fetch(url, {
       method: this.state.method,
@@ -155,6 +160,18 @@ class ToDoForm extends React.Component {
                   timeIntervals={30}
                   dateFormat="dd MMM yyyy hh:mm aa"
                 />
+              </div>
+
+              <div className="btn-group btn-group-toggle" data-toggle="buttons">
+                <label className="btn btn-success active">
+                  <input type="radio" name="priority" value="0" id="lowOption" onClick={this.onChange}/> Low
+                </label>
+                <label className="btn btn-warning">
+                  <input type="radio" name="priority" value="1" id="medOption" onClick={this.onChange}/> Medium
+                </label>
+                <label className="btn btn-danger">
+                  <input type="radio" name="priority" value="2" id="highOption" onClick={this.onChange}/> High
+                </label>
               </div>
 
               <button type="submit" className="btn custom-button mt-3">

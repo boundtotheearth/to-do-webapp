@@ -69,14 +69,16 @@ class Api::V1::ToDoController < ApplicationController
         @to_do.tags.each { |tag| tag.destroy }
       end
 
-      for tag in to_do_params[:tags] do
-        @tag = @to_do.tags.create({
-          to_do_id: @to_do.id,
-          tag: tag
-        });
+      if(to_do_params[:tags])
+        for tag in to_do_params[:tags] do
+          @tag = @to_do.tags.create({
+            to_do_id: @to_do.id,
+            tag: tag
+          });
 
-        if !@tag
-          render json: @tag.errors
+          if !@tag
+            render json: @tag.errors
+          end
         end
       end
 

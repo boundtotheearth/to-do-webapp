@@ -31,8 +31,5 @@ module ToDoWebapp
 
     # Don't generate system test files.
     config.generators.system_tests = nil
-
-    # Use precompiled assets'
-    config.serve_static_assets = true
   end
 end

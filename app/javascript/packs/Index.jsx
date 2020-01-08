@@ -8,14 +8,6 @@ import PropTypes from 'prop-types'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min'
 
-try {
-    var m = require('bootstrap/dist/css/bootstrap.min.css');
-    console.log("Loaded");
-    // do stuff
-} catch (ex) {
-    console.log("Couldn't load css");
-}
-
 import $ from 'jquery';
 import Popper from 'popper.js'
 import App from '../components/App'

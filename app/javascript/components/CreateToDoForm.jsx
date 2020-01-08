@@ -4,7 +4,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from 'moment';
 
-class ToDoForm extends React.Component {
+class CreateToDoForm extends React.Component {
   constructor(props) {
     super(props);
 
@@ -15,7 +15,9 @@ class ToDoForm extends React.Component {
       start_date: moment.utc().format("YYYY-MM-DD HH:mm:ss"),
       due_date: moment.utc().format("YYYY-MM-DD HH:mm:ss"),
       priority: "0",
-      method: "POST"
+      tags: [],
+      new_tag: "",
+      supertask_id: (this.props.match.params.id ? this.props.match.params.id : null)
     };
 
     this.onChange = this.onChange.bind(this);
@@ -23,6 +25,8 @@ class ToDoForm extends React.Component {
     this.handleStartDateChange = this.handleStartDateChange.bind(this);
     this.handleDueDateChange = this.handleDueDateChange.bind(this);
     this.handlePriorityChange = this.handlePriorityChange.bind(this);
+    this.handleTagAdd = this.handleTagAdd.bind(this);
+    this.handleTagDelete = this.handleTagDelete.bind(this);
   }
 
   onChange(event) {
@@ -42,13 +46,26 @@ class ToDoForm extends React.Component {
     this.setState({ priority: priority });
   }
 
+  handleTagAdd() {
+    const tags = this.state.tags.slice();
+    tags.push(this.state.new_tag);
+    this.setState({ tags: tags, new_tag: "" });
+  }
+
+  handleTagDelete(tag) {
+    const tags = this.state.tags.slice();
+    tags.splice(tags.indexOf(tag), 1);
+    this.setState({ tags: tags });
+  }
+
   componentDidMount() {
+    //console.log(this.state.supertask_id);
+    /*
     const {
       match: {
         params: { id }
       }
     } = this.props;
-    console.log(id);
     if(id) {
       const url = `/api/v1/to_do/${id}`;
 
@@ -67,26 +84,27 @@ class ToDoForm extends React.Component {
           start_date: response.start_date,
           due_date: response.due_date,
           priority: response.priority,
+          tags: response.tags.map(tag => tag.tag),
           method: "PATCH"
         }))
         .catch(() => this.props.history.push('/list'))
     }
+    */
   }
 
   onSubmit(event) {
     event.preventDefault();
     const url = "/api/v1/to_do/" + (this.state.id ? this.state.id : "");
-    const { title, description, start_date, due_date, priority } = this.state;
-
+    const { title, description, start_date, due_date, priority, tags, supertask_id } = this.state;
     if(title.length == 0 || description.length == 0 || start_date.length == 0 || due_date.length == 0) {
       return;
     }
+    console.log(supertask_id);
+    const body = {title, description, start_date, due_date, priority, tags, supertask_id};
 
-    const body = {title, description, start_date, due_date, priority};
-    console.log(priority);
     const token = document.querySelector('meta[name="csrf-token"]').content;
     fetch(url, {
-      method: this.state.method,
+      method: "POST",
       headers: {
         "X-CSRF-Token": token,
         "Content-Type": "application/json"
@@ -107,14 +125,22 @@ class ToDoForm extends React.Component {
   }
 
   render() {
+    const { tags } = this.state
+    const displayed_tags = tags.map((tag, index) => (
+      <div key={index} className="mb-2">
+        <button className="btn btn-danger" onClick={() => this.handleTagDelete(tag)}>X</button>
+        <button className="btn btn-secondary">{tag}</button>
+      </div>
+    ))
+
     return (
       <div className="container mt-5">
         <div className="row">
           <div className="col-sm-12 col-lg-6 offset-lg-3">
-            <h1 className="font-weight-normal mb-5">
+            <h1 className="font-weight-normal mb-4">
               Add a To Do:
             </h1>
-            <form onSubmit={this.onSubmit}>
+            <form onSubmit={this.onSubmit} noValidate>
               <div className="form-group">
                 <label htmlFor="toDoTitle">Title</label>
                 <input
@@ -162,22 +188,42 @@ class ToDoForm extends React.Component {
                 />
               </div>
 
-              <div className="btn-group btn-group-toggle" data-toggle="buttons">
-                <label className="btn btn-success active">
-                  <input type="radio" name="priority" value="0" id="lowOption" onClick={this.onChange}/> Low
-                </label>
-                <label className="btn btn-warning">
-                  <input type="radio" name="priority" value="1" id="medOption" onClick={this.onChange}/> Medium
-                </label>
-                <label className="btn btn-danger">
-                  <input type="radio" name="priority" value="2" id="highOption" onClick={this.onChange}/> High
-                </label>
+              <div className="form-group">
+                <label>Priority</label><br></br>
+                <div className="btn-group btn-group-toggle" data-toggle="buttons">
+                  <label className="btn btn-success active">
+                    <input type="radio" name="priority" value="0" id="lowOption" onClick={this.onChange}/> Low
+                  </label>
+                  <label className="btn btn-warning">
+                    <input type="radio" name="priority" value="1" id="medOption" onClick={this.onChange}/> Medium
+                  </label>
+                  <label className="btn btn-danger">
+                    <input type="radio" name="priority" value="2" id="highOption" onClick={this.onChange}/> High
+                  </label>
+                </div>
               </div>
 
-              <button type="submit" className="btn custom-button mt-3">
+              <div className="form-group">
+                <label htmlFor="newToDoTag">Tags</label>
+                <div>
+                  {displayed_tags}
+                </div>
+                <input
+                  type="text"
+                  name="new_tag"
+                  value={this.state.new_tag}
+                  id="newToDoTag"
+                  className="form-control"
+                  required
+                  onChange={this.onChange}
+                />
+                <button type="button" className="btn btn-success" onClick={this.handleTagAdd}>Add Tag</button>
+              </div>
+
+              <button type="submit" className="btn btn-success mt-3 mr-3">
                 Done
               </button>
-              <Link to="/list" className="btn btn-link mt-3">
+              <Link to="/list" className="btn btn-info mt-3">
                 Back to To Do List
               </Link>
             </form>
@@ -188,4 +234,4 @@ class ToDoForm extends React.Component {
   }
 }
 
-export default ToDoForm;
+export default CreateToDoForm;

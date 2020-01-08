@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import ToDoCard from "./ToDoCard";
-import moment from 'moment';
+//import moment from 'moment';
 
 class ToDoList extends React.Component {
   constructor(props) {
@@ -10,17 +10,28 @@ class ToDoList extends React.Component {
       all_to_dos: [],
       displayed_to_dos: [],
       sort_by: "Date Updated",
-      sort_direction: "Ascending"
+      sort_direction: "Ascending",
+      filter_by: "All",
+      tag_list: [],
+      show_subtasks: false,
+      show_completed: false
     }
 
     this.onChangeSortBy = this.onChangeSortBy.bind(this);
     this.onChangeSortDirection = this.onChangeSortDirection.bind(this);
     this.updateToDos = this.updateToDos.bind(this);
+    this.onToggleSubtasks = this.onToggleSubtasks.bind(this);
+    this.onToggleCompleted = this.onToggleCompleted.bind(this);
+    this.fetchToDos = this.fetchToDos.bind(this);
   }
 
   onChangeSortBy(sort_by) {
     //update component state to new sort option
     this.setState({ sort_by: sort_by }, () => this.updateToDos());
+  }
+
+  onChangeFilterBy(filter_by) {
+    this.setState({ filter_by: filter_by }, () => this.updateToDos());
   }
 
   onChangeSortDirection() {
@@ -31,34 +42,68 @@ class ToDoList extends React.Component {
     this.setState({ sort_direction: new_direction }, () => this.updateToDos());
   }
 
+  onToggleSubtasks() {
+    this.setState({ show_subtasks: !this.state.show_subtasks }, () => this.updateToDos());
+  }
+
+  onToggleCompleted() {
+    this.setState({ show_completed: !this.state.show_completed }, () => this.updateToDos());
+  }
+
   updateToDos() {
     //update the list of to_dos based on the sort and filter options in state
-    let new_to_dos = [];
+    let new_to_dos = this.state.all_to_dos.slice();
+
+    //Filter Subtasks
+    if(!this.state.show_subtasks) {
+      new_to_dos = new_to_dos.filter(to_do => {
+          return !to_do.supertask_id
+      })
+    }
+
+    //Filter show_completed
+    if(!this.state.show_completed) {
+      new_to_dos = new_to_dos.filter(to_do => {
+          return !to_do.completed
+      })
+    }
+
+    //Filter Tags
+    if(this.state.filter_by !== "All") {
+      new_to_dos = new_to_dos.filter(to_do => {
+        if(to_do.tags) {
+          return to_do.tags.map(tag => tag.tag).includes(this.state.filter_by);
+        }
+
+        return false;
+      });
+    }
+
     const direction = (this.state.sort_direction === "Ascending") ? 'asc' : 'desc';
 
     switch(this.state.sort_by) {
       case "Date Created":
-        new_to_dos = this.state.all_to_dos.slice().sort(
+        new_to_dos = new_to_dos.sort(
           compareValues('created_at', direction)
         );
         break;
       case "Date Updated":
-        new_to_dos = this.state.all_to_dos.slice().sort(
+        new_to_dos = new_to_dos.sort(
           compareValues('updated_at', direction)
         );
         break;
       case "Start Date":
-        new_to_dos = this.state.all_to_dos.slice().sort(
+        new_to_dos = new_to_dos.sort(
           compareValues('start_date', direction)
         );
         break;
       case "Due Date":
-        new_to_dos = this.state.all_to_dos.slice().sort(
+        new_to_dos = new_to_dos.sort(
           compareValues('due_date', direction)
         );
         break;
       case "Priority":
-        new_to_dos = this.state.all_to_dos.slice().sort(
+        new_to_dos = new_to_dos.sort(
           compareValues('priority', direction)
         );
         break;
@@ -67,9 +112,9 @@ class ToDoList extends React.Component {
     this.setState({ displayed_to_dos: new_to_dos});
   }
 
-  componentDidMount() {
-    const url = "/api/v1/to_do/";
-    fetch(url)
+  fetchToDos() {
+    //Fetch to dos from database
+    fetch("/api/v1/to_do/")
       .then(response => {
         if(response.ok) {
           return response.json();
@@ -77,15 +122,31 @@ class ToDoList extends React.Component {
         throw new Error("Network response was not ok.")
       })
       .then(response => this.setState({ all_to_dos: response,
-                                        displayed_to_dos: response }))
+                                        displayed_to_dos: response },
+                                        () => this.updateToDos()))
       .catch(() => this.props.history.push("/"));
+
+    //Fetch list of tags from database
+    fetch("/api/v1/tag_list")
+      .then(response => {
+        if(response.ok) {
+          return response.json();
+        }
+        throw new Error("Network response was not ok.")
+      })
+      .then(response => this.setState({ tag_list: response }))
+      .catch(() => this.props.history.push("/"));
+  }
+
+  componentDidMount() {
+    this.fetchToDos();
   }
 
   render() {
     const { displayed_to_dos } = this.state;
     const to_dos = displayed_to_dos.map((to_do, index) => (
       <div key={index} className="col-md-6 col-lg-4">
-        <ToDoCard to_do={to_do} />
+        <ToDoCard to_do={to_do} fetchToDos={this.fetchToDos}/>
       </div>
     ));
 
@@ -97,47 +158,91 @@ class ToDoList extends React.Component {
       </div>
     );
 
+    const tags = this.state.tag_list.map((tag, index) => (
+      <button key={index} className="dropdown-item" onClick={() => this.onChangeFilterBy(tag)}>{tag}</button>
+    ))
+
     return (
       <>
         <section className="jumbotron jumbotron-fluid text-center">
-          <div className="container py-5">
+          <div className="container">
             <h1 className="display-4">To Do List</h1>
             <p className="lead text-muted">
               Lets get things done...
             </p>
           </div>
         </section>
-        <div className="py-5">
-          <main className="container">
-            <div className="text-left mb-3">
-              <Link to="/new_to_do" className="btn btn-primary">
-                Create New To Do
-              </Link>
-            </div>
-            <div className="dropdown">
-              <button className="btn btn-secondary dropdown-toggle" type="button" id="sortByButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Sort By: {this.state.sort_by}
-              </button>
-              <div className="dropdown-menu" aria-labelledby="sortByButton">
-                <button className="dropdown-item" onClick={() => this.onChangeSortBy("Date Created")}>Date Created</button>
-                <button className="dropdown-item" onClick={() => this.onChangeSortBy("Date Updated")}>Date Updated</button>
-                <button className="dropdown-item" onClick={() => this.onChangeSortBy("Start Date")}>Start Date</button>
-                <button className="dropdown-item" onClick={() => this.onChangeSortBy("Due Date")}>Due Date</button>
-                <button className="dropdown-item" onClick={() => this.onChangeSortBy("Priority")}>Priority</button>
-              </div>
-            </div>
-            <div>
-              <button type="button" className="btn btn-secondary" data-toggle="button" aria-pressed="false" onClick={() => this.onChangeSortDirection()}>
-                {this.state.sort_direction}
-              </button>
-            </div>
+
+        <div>
+          <div className="container-fluid">
             <div className="row">
-              {to_dos.length > 0 ? to_dos : no_to_do}
+              <div className="col-md-2">
+                <div className="py-4 sticky-top">
+                  <ul className="nav flex-column">
+                    <li className="nav-item my-2">
+                      <Link to="/new_to_do" className="btn btn-primary btn-lg">
+                        New To Do
+                      </Link>
+                    </li>
+
+                    <li className="nav-item dropdown my-2">
+                      <button className="btn btn-secondary dropdown-toggle" type="button" id="sortByButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Sort By: {this.state.sort_by}
+                      </button>
+                      <div className="dropdown-menu" aria-labelledby="sortByButton">
+                        <button className="dropdown-item" onClick={() => this.onChangeSortBy("Date Created")}>Date Created</button>
+                        <button className="dropdown-item" onClick={() => this.onChangeSortBy("Date Updated")}>Date Updated</button>
+                        <button className="dropdown-item" onClick={() => this.onChangeSortBy("Start Date")}>Start Date</button>
+                        <button className="dropdown-item" onClick={() => this.onChangeSortBy("Due Date")}>Due Date</button>
+                        <button className="dropdown-item" onClick={() => this.onChangeSortBy("Priority")}>Priority</button>
+                      </div>
+                    </li>
+
+                    <li className="nav-item dropdown my-2">
+                      <button type="button" className="btn btn-secondary" data-toggle="button" aria-pressed="false" onClick={() => this.onChangeSortDirection()}>
+                        Sort {this.state.sort_direction}
+                      </button>
+                    </li>
+
+                    <li className="nav-item dropdown my-2">
+                      <button className="btn btn-secondary dropdown-toggle" type="button" id="filterByButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Filter By Tag: {this.state.filter_by}
+                      </button>
+                      <div className="dropdown-menu" aria-labelledby="filterByButton">
+                        <button className="dropdown-item" onClick={() => this.onChangeFilterBy('All')}>All</button>
+                        {tags}
+                      </div>
+                    </li>
+
+                    <li className="nav-item my-2">
+                      <button type="button" className="btn btn-secondary" data-toggle="button" aria-pressed="false" onClick={this.onToggleSubtasks}>
+                        {(this.state.show_subtasks) ? "Hide Subtasks" : 'Show Subtasks'}
+                      </button>
+                    </li>
+
+                    <li className="nav-item my-2">
+                      <button type="button" className="btn btn-secondary" data-toggle="button" aria-pressed="false" onClick={this.onToggleCompleted}>
+                        {(this.state.show_completed) ? "Hide Completed" : 'Show Completed'}
+                      </button>
+                    </li>
+
+                    <li className="nav-item my-2">
+                      <Link to="/" className="btn btn-info">
+                        Home
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="col-md-10">
+                <div className="row">
+                  {to_dos.length > 0 ? to_dos : no_to_do}
+                </div>
+              </div>
+
             </div>
-            <Link to="/" className="btn btn-secondary">
-              Home
-            </Link>
-          </main>
+          </div>
         </div>
       </>
     );

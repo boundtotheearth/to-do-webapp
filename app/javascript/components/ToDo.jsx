@@ -10,13 +10,40 @@ class ToDo extends React.Component {
 
     //this.addHtmlEntities = this.addHtmlEntities.bind(this);
     this.deleteToDo = this.deleteToDo.bind(this);
-    this.addSubtask = this.addSubtask.bind(this);
     this.forceUpdate = this.forceUpdate.bind(this);
     this.fetchToDo = this.fetchToDo.bind(this);
+    this.onToggleComplete = this.onToggleComplete.bind(this);
   }
 
   componentDidMount() {
     this.fetchToDo();
+  }
+
+  onToggleComplete() {
+    //Updates database entry, then use callback to update to do list
+    const url = `/api/v1/to_do/${this.state.to_do.id}`;
+    const body = { completed: !this.state.to_do.completed };
+
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+    fetch(url, {
+      method: "PATCH",
+      headers: {
+        "X-CSRF-Token": token,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    })
+      .then(response => {
+        if(response.ok) {
+          return response.json();
+        }
+
+        throw new Error("Network response was not ok");
+      })
+      .then(response => {
+        this.fetchToDo();
+      })
+      .catch(error => console.log(error.message));
   }
 
   fetchToDo() {
@@ -38,10 +65,6 @@ class ToDo extends React.Component {
       })
       .then(response => this.setState({ to_do: response }))
       .catch(() => this.props.history.push('/list'))
-  }
-
-  addSubtask() {
-    console.log("Add subtask");
   }
 
   deleteToDo() {
@@ -106,13 +129,13 @@ class ToDo extends React.Component {
     );
 
     const completeButton = (
-      <button className="btn btn-success">
+      <button className="btn btn-success" onClick={this.onToggleComplete}>
         Complete
       </button>
     );
 
     const notCompleteButton = (
-      <button className="btn btn-danger">
+      <button className="btn btn-danger" onClick={this.onToggleComplete}>
         Undo Complete
       </button>
     )

@@ -14,9 +14,6 @@ class ToDoCard extends React.Component {
     const { to_do } = this.props;
     const url = `/api/v1/to_do/${to_do.id}`;
     const body = { completed: !to_do.completed };
-    to_do.completed = !to_do.completed;
-
-    this.setState({ to_do: to_do });
 
     const token = document.querySelector('meta[name="csrf-token"]').content;
     fetch(url, {

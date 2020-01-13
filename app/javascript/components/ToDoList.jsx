@@ -186,7 +186,12 @@ class ToDoList extends React.Component {
                     </li>
 
                     <li className="nav-item dropdown my-2">
-                      <button className="btn btn-secondary dropdown-toggle" type="button" id="sortByButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <button className="btn btn-secondary dropdown-toggle"
+                              type="button" id="sortByButton"
+                              data-toggle="dropdown"
+                              aria-haspopup="true"
+                              aria-expanded="false"
+                      >
                         Sort By: {this.state.sort_by}
                       </button>
                       <div className="dropdown-menu" aria-labelledby="sortByButton">
@@ -199,29 +204,54 @@ class ToDoList extends React.Component {
                     </li>
 
                     <li className="nav-item dropdown my-2">
-                      <button type="button" className="btn btn-secondary" data-toggle="button" aria-pressed="false" onClick={() => this.onChangeSortDirection()}>
+                      <button type="button"
+                              className="btn btn-secondary"
+                              data-toggle="button"
+                              aria-pressed="false"
+                              onClick={() => this.onChangeSortDirection()}
+                      >
                         Sort {this.state.sort_direction}
                       </button>
                     </li>
 
                     <li className="nav-item dropdown my-2">
-                      <button className="btn btn-secondary dropdown-toggle" type="button" id="filterByButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <button className="btn btn-secondary
+                              dropdown-toggle" type="button"
+                              id="filterByButton"
+                              data-toggle="dropdown"
+                              aria-haspopup="true"
+                              aria-expanded="false"
+                      >
                         Filter By Tag: {this.state.filter_by}
                       </button>
                       <div className="dropdown-menu" aria-labelledby="filterByButton">
-                        <button className="dropdown-item" onClick={() => this.onChangeFilterBy('All')}>All</button>
+                        <button className="dropdown-item"
+                                onClick={() => this.onChangeFilterBy('All')}
+                        >
+                        All
+                        </button>
                         {tags}
                       </div>
                     </li>
 
                     <li className="nav-item my-2">
-                      <button type="button" className="btn btn-secondary" data-toggle="button" aria-pressed="false" onClick={this.onToggleSubtasks}>
+                      <button type="button"
+                              className="btn btn-secondary"
+                              data-toggle="button"
+                              aria-pressed="false"
+                              onClick={this.onToggleSubtasks}
+                      >
                         {(this.state.show_subtasks) ? "Hide Subtasks" : 'Show Subtasks'}
                       </button>
                     </li>
 
                     <li className="nav-item my-2">
-                      <button type="button" className="btn btn-secondary" data-toggle="button" aria-pressed="false" onClick={this.onToggleCompleted}>
+                      <button type="button"
+                              className="btn btn-secondary"
+                              data-toggle="button"
+                              aria-pressed="false"
+                              onClick={this.onToggleCompleted}
+                      >
                         {(this.state.show_completed) ? "Hide Completed" : 'Show Completed'}
                       </button>
                     </li>

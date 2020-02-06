@@ -1,37 +1,34 @@
-import React from "react";
-import { Link, Redirect } from "react-router-dom";
+import React, { Component } from 'react';
+import { Link } from "react-router-dom";
 
-class Home extends React.Component {
+class Signup extends Component {
   constructor(props) {
     super(props);
-    if(this.props.loggedInStatus) {
-      this.props.history.push("/list");
-    }
     this.state = {
       username: '',
       email: '',
       password: '',
+      password_confirmation: '',
       errors: ''
-    };
+     };
   }
-
   handleChange = (event) => {
     const {name, value} = event.target;
     this.setState({
       [name]: value
     });
-  }
-
+  };
   handleSubmit = (event) => {
-    event.preventDefault();
-    const {username, email, password} = this.state;
+    event.preventDefault()
+    const {username, email, password, password_confirmation} = this.state;
 
     let user = {
       username: username,
       email: email,
-      password: password
+      password: password,
+      password_confirmation: password_confirmation
     }
-    const url = '/login';
+    const url = '/users';
     const token = document.querySelector('meta[name="csrf-token"]').content;
     fetch(url, {
       method: "POST",
@@ -43,12 +40,14 @@ class Home extends React.Component {
     })
     .then(response => {
       if(response.ok) {
+        console.log("ok");
         return response.json();
       }
       throw new Error("Network response was not ok.")
     })
     .then(response => {
-      if(response.logged_in) {
+      console.log(response.status);
+      if(response.status === 'created') {
         this.props.handleLogin(response);
         this.redirect();
       } else {
@@ -58,9 +57,10 @@ class Home extends React.Component {
       }
     })
     .catch(error => console.log('api errors:', error))
-  }
+  };
 
   redirect = () => {
+    console.log("here");
     this.props.history.push('/list');
   }
 
@@ -76,19 +76,14 @@ class Home extends React.Component {
   }
 
   render() {
-    const {username, email, password} = this.state;
+    const {username, email, password, password_confirmation} = this.state;
 
     return (
       <div className="vw-100 vh-300 primary-color d-flex align-items-center justify-content-center">
         <div className="jumbotron jumbotron-fluid bg-transparent">
           <div className="container secondary-color">
             <div className="row">
-              <h1 className="display-4">To Do List</h1>
-            </div>
-            <div className="row">
-              <p className="lead">
-                Get things done
-              </p>
+              <h1 className="display-4">Sign Up</h1>
             </div>
             <div className="row">
               <div className="col">
@@ -123,12 +118,22 @@ class Home extends React.Component {
                       onChange={this.handleChange}
                     />
                   </div>
+                  <div className="form-group">
+                    <label htmlFor="password_confirmation">Re-enter Password</label>
+                    <input
+                      type="password"
+                      name="password_confirmation"
+                      className="form-control"
+                      value={password_confirmation}
+                      onChange={this.handleChange}
+                    />
+                  </div>
                   <div className="row">
                     <button className="btn btn-primary" placeholder="submit" type="submit">
-                      Log In
+                      Sign Up
                     </button>
                     <h5 className="mx-3">or</h5>
-                    <Link to='/signup' className="btn btn-secondary" role="button">Sign Up</Link>
+                    <Link to='/' className="btn btn-secondary" role="button">Back to Login</Link>
                   </div>
                  </form>
                </div>
@@ -144,5 +149,4 @@ class Home extends React.Component {
     );
   }
 }
-
-export default Home;
+export default Signup;

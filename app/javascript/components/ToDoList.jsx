@@ -25,6 +25,18 @@ class ToDoList extends React.Component {
     this.fetchToDos = this.fetchToDos.bind(this);
   }
 
+  handleLogout = () => {
+    const url = '/logout';
+    fetch(url, {
+      method: "DELETE"
+    })
+    .then(response => {
+      this.props.handleLogout();
+      this.props.history.push('/');
+    })
+    .catch(error => console.log(error))
+  }
+
   onChangeSortBy(sort_by) {
     //update component state to new sort option
     this.setState({ sort_by: sort_by }, () => this.updateToDos());
@@ -257,8 +269,8 @@ class ToDoList extends React.Component {
                     </li>
 
                     <li className="nav-item my-2">
-                      <Link to="/" className="btn btn-info">
-                        Home
+                      <Link to='/logout'  className="btn btn-danger" role="button"onClick={this.handleLogout}>
+                        Log Out
                       </Link>
                     </li>
                   </ul>

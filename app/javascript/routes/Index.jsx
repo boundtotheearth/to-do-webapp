@@ -15,6 +15,8 @@ export default (
       <Route path="/to_do/:id" exact component={ToDo}/>
       <Route path="/new_to_do/:id?" exact component={CreateToDoForm}/>
       <Route path="/update_to_do/:id" exact component={UpdateToDoForm}/>
+      <Route exact path='/login' component={}/>
+      <Route exact path='/signup' component={}/>
     </Switch>
   </Router>
 )
